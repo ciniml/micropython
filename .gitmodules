@@ -36,3 +36,6 @@
 [submodule "lib/nxp_driver"]
 	path = lib/nxp_driver
 	url = https://github.com/hathach/nxp_driver.git
+[submodule "lib/LovyanGFX"]
+	path = lib/LovyanGFX
+	url = https://github.com/Lovyan03/LovyanGFX.git

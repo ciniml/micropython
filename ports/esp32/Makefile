@@ -376,6 +376,46 @@ DRIVERS_SRC_C = $(addprefix drivers/,\
 	dht/dht.c \
 	)
 
+LIB_SRC_LGFX_CXX = $(addprefix lib/LovyanGFX/src/,\
+	lgfx/LGFXBase.cpp \
+	lgfx/platforms/esp32_common.cpp \
+	lgfx/touch/Touch_FT5x06.cpp \
+	lgfx/touch/Touch_XPT2046.cpp \
+	Fonts/lgfx_fonts.cpp \
+	)
+LIB_SRC_LGFX_CXX += extmod/lgfx/lgfx-c.cpp
+
+LIB_SRC_LGFX_C = $(addprefix lib/LovyanGFX/src/,\
+	lgfx/utility/lgfx_pngle.c \
+	lgfx/utility/lgfx_qrcode.c \
+	lgfx/utility/lgfx_tjpgd.c \
+	lgfx/utility/miniz.c \
+	)
+
+OBJ_LGFX =
+OBJ_LGFX += $(addprefix $(BUILD)/, $(LIB_SRC_LGFX_C:.c=.o))
+OBJ_LGFX += $(addprefix $(BUILD)/, $(LIB_SRC_LGFX_CXX:.cpp=.o))
+
+$(OBJ_LGFX): $(SDKCONFIG_H)
+$(OBJ_LGFX): CFLAGS += -I$(TOP)/lib/LovyanGFX/src -DESP_IDF_VERSION_MAJOR=4
+$(OBJ_LGFX): CXXFLAGS += -I$(TOP)/lib/LovyanGFX/src -DESP_IDF_VERSION_MAJOR=4 -Wno-error=sign-compare -Wno-sign-compare
+
+$(BUILD)/lib/LovyanGFX/LovyanGFX.a: $(OBJ_LGFX)
+	$(ECHO) "AR $@"
+	$(Q)$(AR) cru $@ $^
+
+OBJ_LGFX_DIRS = $(sort $(dir $(OBJ_LGFX))) $(BUILD)/lib/LovyanGFX/src $(BUILD)/extmod/lgfx
+$(OBJ_LGFX): | $(OBJ_LGFX_DIRS)
+$(OBJ_LGFX_DIRS):
+	$(MKDIR) -p $@
+
+LGFX_EXTMOD_DIR = extmod/lgfx
+EXTMOD_SRC_C += $(addprefix $(LGFX_EXTMOD_DIR)/, \
+	moddisplay.c \
+	)
+
+INC += -I$(TOP)/$(LGFX_EXTMOD_DIR)
+
 OBJ_MP =
 OBJ_MP += $(PY_O)
 OBJ_MP += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
@@ -663,6 +703,7 @@ $(OBJ_ESPIDF): $(SDKCONFIG_H)
 
 # Add all IDF components to the set of libraries
 LIB = $(foreach lib,$(LIB_ESPIDF),$(BUILD_ESPIDF_LIB)/$(lib)/lib$(lib).a)
+LIB += $(BUILD)/lib/LovyanGFX/LovyanGFX.a
 
 ################################################################################
 # ESP IDF ldgen
